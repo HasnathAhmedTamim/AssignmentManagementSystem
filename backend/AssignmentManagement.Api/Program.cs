@@ -1,6 +1,8 @@
 using AssignmentManagement.Application.Features.Auth.Interfaces;
 using AssignmentManagement.Application.Features.Auth.Services;
 using AssignmentManagement.Application.Features.Auth.Validators;
+using AssignmentManagement.Application.Features.Users.Interfaces;
+using AssignmentManagement.Application.Features.Users.Services;
 using AssignmentManagement.Application.Interfaces;
 using AssignmentManagement.Infrastructure.Authentication;
 using AssignmentManagement.Infrastructure.DependencyInjection;
@@ -11,6 +13,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,7 +27,41 @@ builder.Services.AddValidatorsFromAssemblyContaining<LoginValidator>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Assignment Management API",
+        Version = "v1",
+        Description = "Assignment & Submission Management System API"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Enter JWT Token.\n\nExample:\nBearer eyJhbGciOiJIUzI1NiIs...",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // Infrastructure
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -35,6 +72,8 @@ builder.Services.Configure<JwtSettings>(
 
 // Dependency Injection
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -58,9 +97,8 @@ builder.Services
             ValidIssuer = jwt.Issuer,
             ValidAudience = jwt.Audience,
 
-            IssuerSigningKey =
-                new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(jwt.Key))
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwt.Key))
         };
     });
 
@@ -68,11 +106,16 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Middleware
+// Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+
+    app.UseSwaggerUI(options =>
+    {
+        options.DocumentTitle = "Assignment Management API";
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Assignment Management API v1");
+    });
 }
 
 app.UseHttpsRedirection();

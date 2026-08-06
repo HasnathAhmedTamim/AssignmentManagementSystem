@@ -1,5 +1,6 @@
-
 using AssignmentManagement.Domain.Enums;
+
+namespace AssignmentManagement.Application.Features.Users.DTOs;
 
 public class CreateUserRequest
 {
