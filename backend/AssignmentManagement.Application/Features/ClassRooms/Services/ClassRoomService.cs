@@ -1,4 +1,5 @@
 using AssignmentManagement.Application.Common.Exceptions;
+using AssignmentManagement.Application.Common.Helpers;
 using AssignmentManagement.Application.Features.ClassRooms.DTOs;
 using AssignmentManagement.Application.Features.ClassRooms.Interfaces;
 using AssignmentManagement.Application.Interfaces;
@@ -26,10 +27,7 @@ public class ClassRoomService : IClassRoomService
     {
         var classRoom = await _classRoomRepository.GetByIdAsync(id);
 
-        if (classRoom == null)
-            return null;
-
-        return MapToResponse(classRoom);
+        return classRoom is null ? null : MapToResponse(classRoom);
     }
 
     public async Task<ClassRoomResponse> CreateAsync(CreateClassRoomRequest request)
@@ -52,10 +50,9 @@ public class ClassRoomService : IClassRoomService
 
     public async Task UpdateAsync(Guid id, UpdateClassRoomRequest request)
     {
-        var classRoom = await _classRoomRepository.GetByIdAsync(id);
-
-        if (classRoom == null)
-            throw new NotFoundException("Classroom not found.");
+        var classRoom = Guard.NotNull(
+            await _classRoomRepository.GetByIdAsync(id),
+            "Classroom not found.");
 
         if (await _classRoomRepository.ExistsByNameAndSectionAsync(request.Name, request.Section, id))
             throw new ConflictException("A classroom with this name and section already exists.");
@@ -70,10 +67,9 @@ public class ClassRoomService : IClassRoomService
 
     public async Task DeleteAsync(Guid id)
     {
-        var classRoom = await _classRoomRepository.GetByIdAsync(id);
-
-        if (classRoom == null)
-            throw new NotFoundException("Classroom not found.");
+        var classRoom = Guard.NotNull(
+            await _classRoomRepository.GetByIdAsync(id),
+            "Classroom not found.");
 
         _classRoomRepository.Delete(classRoom);
         await _classRoomRepository.SaveChangesAsync();

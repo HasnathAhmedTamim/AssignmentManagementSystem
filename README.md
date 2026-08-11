@@ -27,14 +27,21 @@ Role-based full-stack web application for schools/colleges. Teachers create and 
 ```
 AssignmentManagementSystem/
 ├── backend/
-│   ├── AssignmentManagement.Api/             # Controllers, middleware, DI
-│   ├── AssignmentManagement.Application/     # Services, DTOs, validators
+│   ├── AssignmentManagement.Api/             # Controllers, middleware, DI extensions
+│   ├── AssignmentManagement.Application/     # Feature modules (DTOs/Services/Validators)
 │   ├── AssignmentManagement.Domain/          # Entities & enums
 │   ├── AssignmentManagement.Infrastructure/  # EF Core, JWT, seed, repositories
 │   ├── AssignmentManagement.Tests/           # Unit tests
 │   └── AssignmentManagementSystem.sln
-├── frontend/                                 # Next.js app
-├── docker-compose.yml                        # PostgreSQL
+├── frontend/
+│   └── src/
+│       ├── app/                              # Next.js routes (thin pages)
+│       ├── features/                         # Feature UI modules (admin managers, etc.)
+│       ├── shared/                           # Reusable hooks, table/modal helpers
+│       ├── components/                       # Layout + base UI primitives
+│       ├── context/                          # Auth provider
+│       └── lib/                              # API client, types, formatters
+├── docker-compose.yml
 ├── .env.example
 └── README.md
 ```
