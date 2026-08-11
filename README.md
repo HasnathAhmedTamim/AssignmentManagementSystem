@@ -1,16 +1,45 @@
 # Assignment & Submission Management System
 
-Role-based full-stack web application for schools/colleges. Teachers create and grade assignments; students submit work and view feedback; admins manage users, classes, subjects, teacher assignments, and enrollments.
+Role-based full-stack web application for schools and colleges. Admins manage users, classes, and subjects; teachers create and grade assignments; students submit work and view marks and feedback.
+
+**Repository:** https://github.com/HasnathAhmedTamim/AssignmentManagementSystem
+
+---
+
+## Quick start
+
+```bash
+# 1) Database
+docker compose up -d
+
+# 2) Backend (http://localhost:5249)
+cd backend/AssignmentManagement.Api
+dotnet run --launch-profile http
+
+# 3) Frontend (new terminal)
+cd frontend
+cp .env.example .env.local
+npm install
+npm run dev -- -p 3001
+```
+
+Open **http://localhost:3001** and sign in with a demo account below.
+
+> If port `3000` is free, you can use `npm run dev` instead (default Next.js port).
+
+---
 
 ## Main features
 
-- JWT authentication with Admin, Teacher, and Student roles
-- Admin: user management, classrooms, subjects, teacher–class–subject mapping, student enrollments
-- Teacher: create/update/delete assignments, draft/publish workflow, review submissions, marks & feedback
-- Student: view published assignments for enrolled classes, submit/update before deadline, view status/marks/feedback
-- FluentValidation, structured error responses, Serilog request logging, Swagger/OpenAPI
-- EF Core migrations + seed data for easy local setup
-- Unit tests for auth, authorization rules, and submission workflows
+- JWT authentication with **Admin**, **Teacher**, and **Student** roles
+- **Admin:** users, classrooms, subjects, teacher–class–subject mapping, student enrollments
+- **Teacher:** create / update / delete assignments, draft → publish, review submissions, marks & feedback
+- **Student:** view published assignments for enrolled classes, submit / update before deadline, view status / marks / feedback
+- FluentValidation, structured API errors, Serilog logging, Swagger/OpenAPI
+- EF Core migrations + seed data (no manual table creation)
+- Unit tests for auth, authorization, and submission business rules
+
+---
 
 ## Technology stack
 
@@ -22,35 +51,62 @@ Role-based full-stack web application for schools/colleges. Teachers create and 
 | Auth | JWT + role-based authorization |
 | Tests | xUnit, Moq, FluentAssertions |
 
+---
+
+## Architecture
+
+**Backend** uses Clean Architecture with feature modules:
+
+| Project | Responsibility |
+|---------|----------------|
+| `Domain` | Entities and enums |
+| `Application` | Feature services, DTOs, validators, business rules |
+| `Infrastructure` | EF Core, repositories, JWT, seed/migrations |
+| `Api` | Controllers, middleware, DI/Swagger/CORS extensions |
+
+**Frontend** uses thin App Router pages plus feature modules and shared reusable code:
+
+- `app/` — routes only
+- `features/` — screen logic (e.g. admin managers)
+- `shared/` — reusable hooks (`useAsyncList`, `useCrudModal`), `DataTable`, `FormModal`, validation helpers
+- `components/` — layout + UI primitives
+- `lib/` — API client, types, formatters
+
+---
+
 ## Project structure
 
 ```
 AssignmentManagementSystem/
 ├── backend/
-│   ├── AssignmentManagement.Api/             # Controllers, middleware, DI extensions
-│   ├── AssignmentManagement.Application/     # Feature modules (DTOs/Services/Validators)
-│   ├── AssignmentManagement.Domain/          # Entities & enums
-│   ├── AssignmentManagement.Infrastructure/  # EF Core, JWT, seed, repositories
-│   ├── AssignmentManagement.Tests/           # Unit tests
+│   ├── AssignmentManagement.Api/
+│   ├── AssignmentManagement.Application/
+│   ├── AssignmentManagement.Domain/
+│   ├── AssignmentManagement.Infrastructure/
+│   ├── AssignmentManagement.Tests/
 │   └── AssignmentManagementSystem.sln
 ├── frontend/
 │   └── src/
-│       ├── app/                              # Next.js routes (thin pages)
-│       ├── features/                         # Feature UI modules (admin managers, etc.)
-│       ├── shared/                           # Reusable hooks, table/modal helpers
-│       ├── components/                       # Layout + base UI primitives
-│       ├── context/                          # Auth provider
-│       └── lib/                              # API client, types, formatters
+│       ├── app/
+│       ├── features/
+│       ├── shared/
+│       ├── components/
+│       ├── context/
+│       └── lib/
 ├── docker-compose.yml
 ├── .env.example
 └── README.md
 ```
 
+---
+
 ## Prerequisites
 
 - .NET 9 SDK
 - Node.js 20+ and npm
-- PostgreSQL 16+ (or Docker)
+- PostgreSQL 16+ **or** Docker
+
+---
 
 ## Database setup
 
@@ -60,37 +116,46 @@ AssignmentManagementSystem/
 docker compose up -d
 ```
 
-This starts PostgreSQL on port `5432` with:
-
-- Database: `assignment_management_db`
-- User: `postgres`
-- Password: `12345`
+| Setting | Value |
+|---------|-------|
+| Host / Port | `localhost:5432` |
+| Database | `assignment_management_db` |
+| User | `postgres` |
+| Password | `12345` |
 
 ### Option B — Local PostgreSQL
 
-Create a database named `assignment_management_db` and update the connection string in:
+1. Create database `assignment_management_db`
+2. Update the connection string in `backend/AssignmentManagement.Api/appsettings.json`  
+   or copy `appsettings.Development.json.example` → `appsettings.Development.json` (gitignored)
 
-`backend/AssignmentManagement.Api/appsettings.json`
+On API startup, migrations apply and demo data is seeded automatically.
 
-or copy `appsettings.Development.json.example` to `appsettings.Development.json` (gitignored).
-
-Migrations and seed data run automatically when the API starts. No manual table creation is required.
+---
 
 ## Environment configuration
 
-Copy `.env.example` and adjust values as needed. Do **not** commit real production secrets.
+Do **not** commit real production secrets.
 
-Frontend:
+Root `.env.example` shows **required variable names with placeholders only** (`YOUR_DB_PASSWORD`, etc.).
+
+For **local Docker** (easy evaluation), `docker-compose.yml` uses a demo Postgres password documented in the Database section above. Matching demo values also exist in `appsettings.json` so `dotnet run` works out of the box with Docker — treat them as **local demo only**, not personal/production credentials.
+
+**Frontend**
 
 ```bash
+# Linux / macOS
 cp frontend/.env.example frontend/.env.local
-```
 
-Default:
+# Windows PowerShell
+Copy-Item frontend/.env.example frontend/.env.local
+```
 
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5249/api
 ```
+
+---
 
 ## Run the backend
 
@@ -100,18 +165,28 @@ dotnet restore
 dotnet run --launch-profile http
 ```
 
-- API: http://localhost:5249
-- Swagger: http://localhost:5249/swagger
+| Resource | URL |
+|----------|-----|
+| API | http://localhost:5249 |
+| Swagger | http://localhost:5249/swagger |
+
+---
 
 ## Run the frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev -- -p 3001
 ```
 
-App: http://localhost:3000
+| Resource | URL |
+|----------|-----|
+| App | http://localhost:3001 |
+
+CORS allows `http://localhost:3000` and `http://localhost:3001`.
+
+---
 
 ## Run the tests
 
@@ -119,6 +194,8 @@ App: http://localhost:3000
 cd backend
 dotnet test
 ```
+
+---
 
 ## Demo credentials
 
@@ -128,41 +205,48 @@ dotnet test
 | Teacher | teacher@school.com | Teacher@123 |
 | Student | student@school.com | Student@123 |
 
-Seeded sample data also includes:
+**Seeded sample data**
 
-- Class `Grade 10 / A`
-- Subjects `Mathematics (MATH-101)`, `English (ENG-101)`
+- Class: `Grade 10 / A`
+- Subjects: `Mathematics (MATH-101)`, `English (ENG-101)`
 - Teacher assigned to both subjects for that class
 - Students enrolled in the class
-- One published assignment (`Algebra Basics`) and one draft assignment
+- Published assignment: `Algebra Basics`
+- Draft assignment: `Essay Draft (Unpublished)`
+
+---
 
 ## Assumptions
 
-1. A **classroom** is identified by `Name` + `Section` (e.g. Grade 10 / A).
-2. Teachers are linked to teaching work via **Teacher–Class–Subject** rows; assignments are created against those rows.
+1. A classroom is identified by **Name + Section** (e.g. Grade 10 / A).
+2. Teachers are linked via **Teacher–Class–Subject** rows; assignments are created against those rows.
 3. Students see only **Published** assignments for classes they are enrolled in.
 4. New assignments start as **Draft**; teachers (or admin) publish them.
 5. Students may **update** a submission until the deadline; after the deadline, updates are blocked.
 6. A first submission after the deadline is stored with status **Late**.
 7. Marks must be between `0` and the assignment’s `MaximumMarks`.
 8. Only the owning teacher (or Admin) can grade submissions for an assignment.
-9. Text answers are stored as plain text (no file uploads in this version).
+9. Answers are stored as plain text (no file uploads in this version).
 10. Demo JWT key and DB password in `appsettings.json` are for **local evaluation only**.
+
+---
 
 ## Known limitations
 
-- No email/push notifications
+- No email / push notifications
 - No file attachments for assignments or submissions
-- No pagination/advanced filtering beyond role-scoped lists
+- No pagination / advanced filtering beyond role-scoped lists
 - Soft-delete is not implemented (hard delete)
-- Single active enrollment model is simple (no academic-year history)
+- Simple enrollment model (no academic-year history)
 
-## Final checklist mapping
+---
+
+## Submission checklist
 
 - [x] Frontend and backend included
 - [x] Migrations + seed for database setup
-- [x] Demo accounts for Admin, Teacher, Student
-- [x] README with run/test instructions
-- [x] Role-based access enforced by API
+- [x] Demo accounts for Admin, Teacher, and Student
+- [x] README with run / test instructions
+- [x] Role-based access enforced by the API
 - [x] Business rules covered by unit tests
-- [x] No real production secrets required in the repo (demo values only; see `.env.example`)
+- [x] No real production secrets required (demo values only; see `.env.example`)
