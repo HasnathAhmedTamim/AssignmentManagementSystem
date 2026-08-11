@@ -1,3 +1,4 @@
+using AssignmentManagement.Application.Common.Exceptions;
 using AssignmentManagement.Application.Features.Auth.DTOs;
 using AssignmentManagement.Application.Features.Auth.Interfaces;
 using AssignmentManagement.Application.Interfaces;
@@ -25,14 +26,17 @@ public class AuthService : IAuthService
         var user = await _userRepository.GetByEmailAsync(request.Email);
 
         if (user is null)
-            throw new Exception("Invalid email or password.");
+            throw new UnauthorizedAppException("Invalid email or password.");
+
+        if (!user.IsActive)
+            throw new UnauthorizedAppException("This account has been deactivated.");
 
         var isValidPassword = _passwordHasher.Verify(
             request.Password,
             user.PasswordHash);
 
         if (!isValidPassword)
-            throw new Exception("Invalid email or password.");
+            throw new UnauthorizedAppException("Invalid email or password.");
 
         var token = _jwtTokenGenerator.GenerateToken(user);
 

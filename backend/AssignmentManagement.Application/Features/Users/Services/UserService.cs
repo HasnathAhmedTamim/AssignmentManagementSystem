@@ -1,3 +1,4 @@
+using AssignmentManagement.Application.Common.Exceptions;
 using AssignmentManagement.Application.Features.Users.DTOs;
 using AssignmentManagement.Application.Features.Users.Interfaces;
 using AssignmentManagement.Application.Interfaces;
@@ -40,7 +41,7 @@ public class UserService : IUserService
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
 
         if (existingUser != null)
-            throw new Exception("User with this email already exists.");
+            throw new ConflictException("User with this email already exists.");
 
         var user = new User
         {
@@ -62,7 +63,7 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(id);
 
         if (user == null)
-            throw new Exception("User not found.");
+            throw new NotFoundException("User not found.");
 
         user.FullName = request.FullName;
         user.Email = request.Email;
@@ -79,7 +80,7 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(id);
 
         if (user == null)
-            throw new Exception("User not found.");
+            throw new NotFoundException("User not found.");
 
         _userRepository.Delete(user);
 
