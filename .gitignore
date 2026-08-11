@@ -14,7 +14,14 @@ frontend/.next/
 
 # Environment
 .env
+.env.local
+frontend/.env.local
 **/appsettings.Development.json
+
+# IDE / build
+*.user
+*.suo
+TestResults/
 
 # Logs
 *.log
