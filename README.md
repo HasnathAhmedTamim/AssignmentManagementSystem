@@ -116,12 +116,8 @@ AssignmentManagementSystem/
 docker compose up -d
 ```
 
-| Setting | Value |
-|---------|-------|
-| Host / Port | `localhost:5432` |
-| Database | `assignment_management_db` |
-| User | `postgres` |
-| Password | `12345` |
+Starts Postgres on `localhost:5432` with database `assignment_management_db`.  
+Demo DB username/password live in `docker-compose.yml` only (local evaluation defaults — **not** personal secrets). Use the matching connection string in `appsettings.json` when running the API against that container.
 
 ### Option B — Local PostgreSQL
 
@@ -139,7 +135,7 @@ Do **not** commit real production secrets.
 
 Root `.env.example` shows **required variable names with placeholders only** (`YOUR_DB_PASSWORD`, etc.).
 
-For **local Docker** (easy evaluation), `docker-compose.yml` uses a demo Postgres password documented in the Database section above. Matching demo values also exist in `appsettings.json` so `dotnet run` works out of the box with Docker — treat them as **local demo only**, not personal/production credentials.
+For **local Docker**, use the demo Postgres settings from `docker-compose.yml` with the matching connection string in `appsettings.json` so `dotnet run` works out of the box. Treat those as **local demo only**, not personal/production credentials. Root `.env.example` keeps placeholders only.
 
 **Frontend**
 
@@ -197,7 +193,9 @@ dotnet test
 
 ---
 
-## Demo credentials
+## Demo credentials (application login)
+
+Required for evaluators to test each role. These are **seeded demo users**, not personal accounts:
 
 | Role | Email | Password |
 |------|-------|----------|
